@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const StudentForm = () => {
-  const [students, setStudents] = useState([
-    // Example data for demonstration. You can fetch this from the backend if needed.
-    { id: 1, name: 'Dinu', age: 23, address: 'Kotte', contact: '023764673', guardian: 'Mother' },
-  ]);
+  const [students, setStudents] = useState([]);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [address, setAddress] = useState('');
@@ -18,7 +15,7 @@ const StudentForm = () => {
     const student = { name, age, address, contact, guardian, image };
 
     if (editingStudentId !== null) {
-      // Update existing student
+
       axios.put(`http://localhost:8080/students/${editingStudentId}`, student)
         .then(response => {
           setStudents(students.map(s => (s.id === editingStudentId ? student : s)));
@@ -27,7 +24,6 @@ const StudentForm = () => {
         })
         .catch(error => console.error(error));
     } else {
-      // Add new student
       axios.post('http://localhost:8080/students', student)
         .then(response => {
           setStudents([...students, response.data]);
@@ -56,9 +52,14 @@ const StudentForm = () => {
     setImage('');
   };
 
+  const handleDelete = (id) => {
+    axios.delete(`http://localhost:8080/students/${id}`)
+      .then(() => setStudents(students.filter(student => student.id !== id)))
+      .catch(error => console.error(error));
+  };
+
   return (
     <div className="flex justify-between">
-      {/* Form Section */}
       <form className="flex flex-col w-1/3 p-4 border border-gray-300 rounded-lg">
         <label>Name:</label>
         <input
@@ -110,7 +111,6 @@ const StudentForm = () => {
         </button>
       </form>
 
-      {/* Table Section */}
       <div className="w-2/3 p-4">
         <h2 className="text-xl font-bold mb-4">Student List</h2>
         <table className="min-w-full border-collapse">
@@ -139,7 +139,10 @@ const StudentForm = () => {
                   >
                     Edit
                   </button>
-                  <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
+                  <button
+                    onClick={() => handleDelete(student.id)}
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded mr-2"
+                  >
                     Delete
                   </button>
                 </td>
