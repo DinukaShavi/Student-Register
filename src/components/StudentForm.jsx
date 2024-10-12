@@ -8,29 +8,51 @@ const StudentForm = () => {
   const [address, setAddress] = useState('');
   const [contact, setContact] = useState('');
   const [guardian, setGuardian] = useState('');
-  const [image, setImage] = useState('');
+  const [image, setImage] = useState(null);
   const [editingStudentId, setEditingStudentId] = useState(null);
 
   const handleRegister = () => {
-    const student = { name, age, address, contact, guardian, image };
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('age', age);
+    formData.append('address', address);
+    formData.append('contact', contact);
+    formData.append('guardian', guardian);
+    formData.append('image', image); 
 
     if (editingStudentId !== null) {
-
-      axios.put(`http://localhost:8080/students/${editingStudentId}`, student)
+      axios.put(`http://localhost:8080/students/${editingStudentId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
         .then(response => {
-          setStudents(students.map(s => (s.id === editingStudentId ? student : s)));
+          setStudents(students.map(s => (s.id === editingStudentId ? response.data : s)));
           setEditingStudentId(null);
           resetForm();
         })
         .catch(error => console.error(error));
     } else {
-      axios.post('http://localhost:8080/students', student)
+      axios.post('http://localhost:8080/students', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
         .then(response => {
           setStudents([...students, response.data]);
           resetForm();
         })
         .catch(error => console.error(error));
     }
+  };
+
+  const handleFileChange = (e) => {
+    setImage(e.target.files[0]);
+  };
+
+  const resetForm = () => {
+    setName('');
+    setAge('');
+    setAddress('');
+    setContact('');
+    setGuardian('');
+    setImage(null);
   };
 
   const handleEdit = (student) => {
@@ -41,15 +63,6 @@ const StudentForm = () => {
     setGuardian(student.guardian);
     setImage(student.image);
     setEditingStudentId(student.id);
-  };
-
-  const resetForm = () => {
-    setName('');
-    setAge('');
-    setAddress('');
-    setContact('');
-    setGuardian('');
-    setImage('');
   };
 
   const handleDelete = (id) => {
@@ -99,7 +112,7 @@ const StudentForm = () => {
         <label>Image:</label>
         <input
           type="file"
-          onChange={e => setImage(e.target.files?.[0].name || '')}
+          onChange={handleFileChange} 
           className="p-2 mb-4 border border-gray-400 rounded"
         />
         <button
